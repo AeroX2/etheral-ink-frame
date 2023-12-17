@@ -11,15 +11,17 @@ from celery.signals import worker_ready
 from celery_singleton import Singleton
 from config import settings
 
+import logging
+import numpy as np
+from PIL import Image,ImageDraw,ImageFont
+
+import sqlite3
+
 if False:
     libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib')
     if os.path.exists(libdir):
         sys.path.append(libdir)
-
-    import logging
     from waveshare_epd import epd7in3f
-    from PIL import Image,ImageDraw,ImageFont
-    import traceback
 
 
 logging.basicConfig(level=logging.DEBUG)
@@ -30,51 +32,50 @@ celery = Celery(
     backend=settings.CELERY_RESULT_BACKEND
 )
 
+db = sqlite3.connect('database.db')
+
 paused = False
-generate_image_process = None
 
 @celery.task(base=Singleton)
-def generate_image(prompt: str, output_file_path: str):
-    path = Path(output_file_path)
+def generate_image(prompt: str, output_image_path: str):
+    path = Path(output_image_path)
     seed = random.randint(0, 1000000)
     
     if False:
-        command = './sd --turbo --prompt {} --models-path sdxlturbo --steps 1 --output {} --seed {}'.format(quote(prompt), quote(output_file_path), seed)\
+        command = './sd --turbo --prompt {} --models-path sdxlturbo --steps 1 --output {} --seed {}'.format(quote(prompt), quote(output_image_path), seed)
     else:
-        command = 'sleep 1000'
+        command = 'echo "hello"; sleep 3; echo "end"'
     
-    global generate_image_process
-    generate_image_process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True)
 
     while True:
-        output_line = generate_image_process.stdout.readline()
-        if output_line == '' and generate_image_process.poll() is not None:
+        output_line = process.stdout.readline()
+        if output_line == '' and process.poll() is not None:
             break
 
         logging.info("Output:", output_line.strip())
 
-        error_line = generate_image_process.stderr.readline()
-        if error_line == '' and generate_image_process.poll() is not None:
+        error_line = process.stderr.readline()
+        if error_line == '' and process.poll() is not None:
             break
 
         logging.info("Error:", error_line.strip())
 
-    generate_image_process.wait()
+    process.wait()
     
-    with open(path.parent / "data.txt", "wa") as f:
-        f.write("{} {} {}\n".format(path.stem, prompt, seed))
-    
-@celery.task(base=Singleton)
-def cancel_generate_image():
-    if generate_image_process is not None:
-        generate_image_process.kill()
+    db.execute("UPDATE prompts SET seed = ?, image_path = ? WHERE prompt = ?", (seed, output_image_path, prompt))
+    db.commit()
     
 @celery.task
 def generate_prompts(amount: int):
     with open('data/prompt_data.txt') as f:
         lines = [x.strip() for x in f.readlines()]
-        prompts = [", ".join([random.choice(lines) for ii in random.randrange(3,8)]) for i in range(amount)]
-        return prompts
+        prompts = [", ".join([random.choice(lines) for ii in range(random.randint(3,8))]) for i in range(amount)]
+
+    for prompt in prompts:
+        db.execute("INSERT INTO prompts VALUES(?, NULL, NULL)", (prompt,))
+    db.commit()
+    return prompts
 
 palette = np.array([
     [0, 0, 0],       # Black
@@ -144,7 +145,8 @@ def draw_image(file_path: str):
          
 @celery.task
 def start():
-    while True:
-        generate_image.map(generate_prompts()).get()
-    
-start()
+    results = db.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='prompts'")
+    if len(results) == 0:
+        db.execute("CREATE TABLE prompts(prompt, seed, image_path)")
+
+    [generate_image.s(prompt, 'generated/{}'.format(uuid.uuid4())) for prompt in generate_prompts(100)]
