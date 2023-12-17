@@ -1,0 +1,67 @@
+from shlex import quote
+import subprocess
+import os
+import sys
+
+libdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'lib')
+if os.path.exists(libdir):
+    sys.path.append(libdir)
+
+import logging
+from waveshare_epd import epd7in3f
+from PIL import Image,ImageDraw,ImageFont
+import traceback
+
+from celery import shared_task, Celery
+from config import settings
+
+logging.basicConfig(level=logging.DEBUG)
+
+app = FastAPI()
+
+celery = Celery(
+    __name__,
+    broker=settings.CELERY_BROKER_URL,
+    backend=settings.CELERY_RESULT_BACKEND
+)
+
+@celery.task
+def generate_image(prompt: str, output_file_path: str):
+    command = './sd --turbo --prompt {} --models-path sdxlturbo --steps 1 --output {}'.format(quote(prompt), quote(output_file_path))
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+
+    while True:
+        output_line = process.stdout.readline()
+        if output_line == '' and process.poll() is not None:
+            break
+
+        print("Output:", output_line.strip())
+
+        error_line = process.stderr.readline()
+        if error_line == '' and process.poll() is not None:
+            break
+
+         print("Error:", error_line.strip())
+
+    process.wait()
+
+@celery.task
+def draw_image(file_path: str):
+    try:
+        epd = epd7in3f.EPD()
+        logging.info("init and Clear")
+        epd.init()
+        epd.Clear()
+
+        Himage = Image.open(file_path)
+        epd.display(epd.getbuffer(Himage))
+        epd.sleep()
+
+    except Exception as e:
+        logging.info("Goto Sleep...")
+        epd.sleep()
+
+        logging.info("ctrl + c:")
+        epd7in3f.epdconfig.module_exit()
+
+        logging.info(e)

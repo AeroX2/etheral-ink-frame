@@ -1,0 +1,18 @@
+from typing import Union
+from fastapi import FastAPI, BackgroundTasks
+
+import uuid
+import tasks
+
+app = FastAPI()
+
+
+@app.get("/")
+def root():
+    return {"Hello": "World"}
+
+
+@app.get("/generate")
+def generate(prompt: str):
+    tasks.generate_image(prompt, "generated/{}".format(uuid.uuid4()))
+    return {"status": "ok"}
