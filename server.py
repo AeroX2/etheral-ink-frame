@@ -50,10 +50,10 @@ def pause():
     return {"status": "ok", "paused": app.paused}
 
 @app.get("/prompts")
-def prompts(page = 0, limit = 20):
+def prompts(page = 1, limit = 20):
     page = int(page)
     limit = int(limit)
-    res = db.execute("SELECT * from prompts ORDER BY date DESC LIMIT ? OFFSET ?", (limit, page*limit))
+    res = db.execute("SELECT * from prompts ORDER BY date DESC LIMIT ? OFFSET ?", (limit, (page-1)*limit))
     res = [{k : item[k] for k in item.keys()} for item in res]
 
     count = db.execute("SELECT COUNT(1) from prompts")
@@ -81,7 +81,7 @@ def generate_loop():
     time.sleep(3)
 
     while True:
-        prompts = generate_prompts(20)
+        prompts = generate_prompts(3)
 
         prompts_iter = iter(prompts)
         prompt = next(prompts_iter)
@@ -99,7 +99,6 @@ def generate_loop():
 @app.on_event("startup")
 def startup():
     res = db.execute("SELECT name from sqlite_master where type='table' and name='prompts'").fetchone()
-    print(res)
     if res is None:
         db.execute("CREATE TABLE prompts(prompt, seed, image_path, date)")
         db.commit()
@@ -107,4 +106,7 @@ def startup():
     thread = Thread(target=generate_loop)
     thread.start()
 
+app.mount("/generated", StaticFiles(directory="generated"), name="generated")
+app.mount("/uploaded", StaticFiles(directory="uploaded"), name="uploaded")
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
+

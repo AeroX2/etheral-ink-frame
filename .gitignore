@@ -32,3 +32,5 @@ archive.zip
 *.log
 dump.rdb
 database.db
+generated/*
+uploaded/*

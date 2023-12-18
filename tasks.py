@@ -35,9 +35,9 @@ def generate_image(prompt: str, output_image_path: str):
     seed = random.randint(0, 1000000)
     
     if False:
-        command = f"./sd --turbo --prompt ${quote(prompt)} --models-path sdxlturbo --steps 1 --output ${quote(output_image_path)} --seed ${seed}"
+        command = f"./sd --turbo --prompt {quote(prompt)} --models-path sdxlturbo --steps 1 --output {quote(output_image_path)} --seed ${seed}"
     else:
-        command = "echo 'hello'; sleep 3; echo 'end'"
+        command = f"echo 'hello'; sleep 3; wget https://cataas.com/cat -O {output_image_path}; echo 'end'"
     
     with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True) as process:
         while True:
