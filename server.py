@@ -1,6 +1,6 @@
 from typing import Union
 from threading import Thread
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
@@ -10,6 +10,8 @@ import tasks
 import random
 import sqlite3
 from datetime import datetime
+
+from PIL import Image
 
 app = FastAPI()
 app.add_middleware(
@@ -57,8 +59,35 @@ def prompts(page = 1, limit = 20):
     res = [{k : item[k] for k in item.keys()} for item in res]
 
     count = db.execute("SELECT COUNT(1) from prompts")
+    totalSize = count.fetchone()[0]
 
-    return {"status": "ok", "data": res, "totalSize": count.fetchone()[0]}
+    return {"status": "ok", "data": res, "totalSize": totalSize}
+
+@app.get("/upload")
+def upload(file: UploadFile):
+    contents = file.file.read()
+    image_name = Path(f'{uuid.uuid4()}.png')
+    image_path = Path('uploaded') / image_name
+    dithered_image_path = Path('dithered') / image_name
+
+    with Image.open(io.BytesIO(contents), "PNG") as im:
+        im.save(image_path)
+    (tasks.dither_image(image_path, dithered_image_path) | tasks.draw_image(image_path)).delay()
+
+    return {"status": "ok"}
+
+@app.get("/images")
+def images():
+    generated_images = [str(x) for x in Path('generated').glob('*')]
+    uploaded_images = [str(x) for x in Path('uploaded').glob('*')]
+
+    return {"status": "ok", "generated": generated_images, "uploaded": uploaded_images}
+
+@app.get("/select")
+def select(image_name: str):
+    image_path = Path('dithered') / image_name
+    tasks.draw_image.delay(image_path)
+    return {"status": "ok"}
 
 # Scheduling section
 
@@ -84,16 +113,22 @@ def generate_loop():
         prompts = generate_prompts(3)
 
         prompts_iter = iter(prompts)
-        prompt = next(prompts_iter)
+        prompt = next(prompts_iter, None)
         while prompts is not None:
             if app.paused:
                 time.sleep(0.5)
                 continue
-            image_path = f'generated/{uuid.uuid4()}.png'
+
+            image_name = Path(f'{uuid.uuid4()}.png')
+            image_path = Path('generated/') / image_name
+            output_image_path = Path('dithered') / image_name
+
             (seed,) = tasks.generate_image.delay(prompt, image_path).get()
             save_result(prompt, seed, image_path)
+            tasks.dither_image.delay(image_path, output_image_path).get()
+            tasks.draw_image.delay(output_image_path).get()
 
-            prompt = next(prompts_iter)
+            prompt = next(prompts_iter, None)
  
 
 @app.on_event("startup")
@@ -106,7 +141,12 @@ def startup():
     thread = Thread(target=generate_loop)
     thread.start()
 
+Path("/generated").mkdir(exist_ok=True)
+Path("/uploaded").mkdir(exist_ok=True)
+Path("/dithered").mkdir(exist_ok=True)
+
 app.mount("/generated", StaticFiles(directory="generated"), name="generated")
 app.mount("/uploaded", StaticFiles(directory="uploaded"), name="uploaded")
+app.mount("/dithered", StaticFiles(directory="dithered"), name="dithered")
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 

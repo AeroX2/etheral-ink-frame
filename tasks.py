@@ -30,7 +30,7 @@ celery = Celery(
 )
 
 @celery.task(base=Singleton)
-def generate_image(prompt: str, output_image_path: str):
+def generate_image(prompt: str, output_image_path: Path):
     path = Path(output_image_path)
     seed = random.randint(0, 1000000)
     
@@ -72,47 +72,41 @@ def find_closest_color(pixel, palette):
     return np.argmin(distances)
 
 @celery.task
-def dither_image(image_path: str, output_path: str):
-    # Load the image
-    image = Image.open(image_path)
+def dither_image(image_path: Path, output_path: Path):
+    with Image.open(image_path) as image:
+        img_array = np.array(image)
 
-    # Convert the image to a NumPy array
-    img_array = np.array(image)
+        # Normalize pixel values to the range [0, 1]
+        img_array = img_array / 255.0
 
-    # Normalize pixel values to the range [0, 1]
-    img_array = img_array / 255.0
+        # Apply Floyd-Steinberg dithering using the specified palette
+        for y in range(img_array.shape[0] - 1):
+            for x in range(1, img_array.shape[1] - 1):
+                old_pixel = img_array[y, x]
+                new_pixel_index = find_closest_color(old_pixel, palette)
+                new_pixel = palette[new_pixel_index]
+                img_array[y, x] = new_pixel
+                error = old_pixel - new_pixel
 
-    # Apply Floyd-Steinberg dithering using the specified palette
-    for y in range(img_array.shape[0] - 1):
-        for x in range(1, img_array.shape[1] - 1):
-            old_pixel = img_array[y, x]
-            new_pixel_index = find_closest_color(old_pixel, palette)
-            new_pixel = palette[new_pixel_index]
-            img_array[y, x] = new_pixel
-            error = old_pixel - new_pixel
+                img_array[y, x + 1] += error * 7 / 16
+                img_array[y + 1, x - 1] += error * 3 / 16
+                img_array[y + 1, x] += error * 5 / 16
+                img_array[y + 1, x + 1] += error * 1 / 16
 
-            img_array[y, x + 1] += error * 7 / 16
-            img_array[y + 1, x - 1] += error * 3 / 16
-            img_array[y + 1, x] += error * 5 / 16
-            img_array[y + 1, x + 1] += error * 1 / 16
-
-    # Convert the NumPy array back to an image
-    dithered_image = Image.fromarray((img_array * 255).astype(np.uint8))
-
-    # Save the dithered image
-    dithered_image.save(output_path)
+        dithered_image = Image.fromarray((img_array * 255).astype(np.uint8))
+        dithered_image.save(output_path, "PNG")
 
 @celery.task
-def draw_image(file_path: str):
+def draw_image(file_path: Path):
     try:
         epd = epd7in3f.EPD()
         logging.info("init and Clear")
         epd.init()
         epd.Clear()
 
-        Himage = Image.open(file_path)
-        epd.display(epd.getbuffer(Himage))
-        epd.sleep()
+        with Image.open(file_path) as image:
+            epd.display(epd.getbuffer(image))
+            epd.sleep()
 
     except Exception as e:
         logging.info("Goto Sleep...")

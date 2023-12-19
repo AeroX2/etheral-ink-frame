@@ -34,3 +34,4 @@ dump.rdb
 database.db
 generated/*
 uploaded/*
+dithered/*
