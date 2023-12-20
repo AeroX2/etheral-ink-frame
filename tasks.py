@@ -1,5 +1,4 @@
 from shlex import quote
-from pathlib import Path
 import subprocess
 import os
 import sys
@@ -30,8 +29,7 @@ celery = Celery(
 )
 
 @celery.task(base=Singleton)
-def generate_image(prompt: str, output_image_path: Path):
-    path = Path(output_image_path)
+def generate_image(prompt: str, output_image_path: str):
     seed = random.randint(0, 1000000)
     
     if False:
@@ -57,7 +55,7 @@ def generate_image(prompt: str, output_image_path: Path):
 
     return (seed,)
 
-palette = np.array([
+palette = [
     [0, 0, 0],       # Black
     [0, 0, 255],     # Blue
     [255, 0, 0],     # Red
@@ -65,39 +63,26 @@ palette = np.array([
     [255, 128, 0],   # Orange
     [255, 255, 0],   # Yellow
     [255, 255, 255], # White
-])
+]
 
 def find_closest_color(pixel, palette):
     distances = np.linalg.norm(palette - pixel, axis=1)
     return np.argmin(distances)
 
 @celery.task
-def dither_image(image_path: Path, output_path: Path):
-    with Image.open(image_path) as image:
-        img_array = np.array(image)
+def dither_image(image_path: str, output_path: str):
+    # Open the image
+    input_image = Image.open(image_path)
 
-        # Normalize pixel values to the range [0, 1]
-        img_array = img_array / 255.0
+    palette_expand = [x for t in palette for x in t]
+    paletteim = Image.new('P', (16,16))
+    paletteim.putpalette(palette * 32)
 
-        # Apply Floyd-Steinberg dithering using the specified palette
-        for y in range(img_array.shape[0] - 1):
-            for x in range(1, img_array.shape[1] - 1):
-                old_pixel = img_array[y, x]
-                new_pixel_index = find_closest_color(old_pixel, palette)
-                new_pixel = palette[new_pixel_index]
-                img_array[y, x] = new_pixel
-                error = old_pixel - new_pixel
-
-                img_array[y, x + 1] += error * 7 / 16
-                img_array[y + 1, x - 1] += error * 3 / 16
-                img_array[y + 1, x] += error * 5 / 16
-                img_array[y + 1, x + 1] += error * 1 / 16
-
-        dithered_image = Image.fromarray((img_array * 255).astype(np.uint8))
-        dithered_image.save(output_path, "PNG")
+    dithered_image = input_image.quantize(colors=7, palette=paletteim)
+    dithered_image.save(output_path, "PNG")
 
 @celery.task
-def draw_image(file_path: Path):
+def draw_image(file_path: str):
     try:
         epd = epd7in3f.EPD()
         logging.info("init and Clear")

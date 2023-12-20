@@ -1,14 +1,17 @@
 from typing import Union
 from threading import Thread
+from pydantic import BaseModel
 from fastapi import FastAPI, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
+import io
 import time
 import uuid
 import tasks
 import random
 import sqlite3
+from pathlib import Path
 from datetime import datetime
 
 from PIL import Image
@@ -29,28 +32,6 @@ db.row_factory = sqlite3.Row
 #def root():
 #    return {"Hello": "World"}
 
-@app.get("/generate")
-def generate(prompt: str):
-    tasks.generate_image.delay(prompt, f"generated/{uuid.uuid4()}.png")
-    return {"status": "ok"}
- 
-@app.get("/cancel")
-def cancel():
-    for worker in tasks.celery.control.inspect().active().values():
-        for task in worker:
-            print(task)
-            if 'generate_image' in task['name']:
-                tasks.celery.control.revoke(task['id'], terminate=True)
-                return {"status": "ok"}
-    return {"status": "error", "error": "Task not found"}
-
-app.paused = False
-
-@app.get("/pause")
-def pause():
-    app.paused = not app.paused
-    return {"status": "ok", "paused": app.paused}
-
 @app.get("/prompts")
 def prompts(page = 1, limit = 20):
     page = int(page)
@@ -63,19 +44,6 @@ def prompts(page = 1, limit = 20):
 
     return {"status": "ok", "data": res, "totalSize": totalSize}
 
-@app.get("/upload")
-def upload(file: UploadFile):
-    contents = file.file.read()
-    image_name = Path(f'{uuid.uuid4()}.png')
-    image_path = Path('uploaded') / image_name
-    dithered_image_path = Path('dithered') / image_name
-
-    with Image.open(io.BytesIO(contents), "PNG") as im:
-        im.save(image_path)
-    (tasks.dither_image(image_path, dithered_image_path) | tasks.draw_image(image_path)).delay()
-
-    return {"status": "ok"}
-
 @app.get("/images")
 def images():
     generated_images = [str(x) for x in Path('generated').glob('*')]
@@ -83,9 +51,50 @@ def images():
 
     return {"status": "ok", "generated": generated_images, "uploaded": uploaded_images}
 
-@app.get("/select")
-def select(image_name: str):
-    image_path = Path('dithered') / image_name
+app.paused = False
+
+@app.post("/pause")
+def pause():
+    app.paused = not app.paused
+    return {"status": "ok", "paused": app.paused}
+ 
+@app.post("/cancel")
+def cancel():
+    app.paused = True
+    for worker in tasks.celery.control.inspect().active().values():
+        for task in worker:
+            print(task)
+            if 'generate_image' in task['name']:
+                tasks.celery.control.revoke(task['id'], terminate=True)
+                return {"status": "ok"}
+    return {"status": "error", "error": "Task not found"}
+
+@app.post("/generate")
+def generate(prompt: str):
+    tasks.generate_image.delay(prompt, f"generated/{uuid.uuid4()}.png")
+    return {"status": "ok"}
+
+@app.post("/upload")
+def upload(file: UploadFile):
+    contents = file.file.read()
+    image_name = Path(f'{uuid.uuid4()}.png')
+    image_path = str(Path('uploaded') / image_name)
+    dithered_image_path = str(Path('dithered') / image_name)
+
+    with Image.open(io.BytesIO(contents)) as img:
+        img.thumbnail((800,480), Image.LANCZOS)
+        img.save(image_path, "BMP")
+    # (tasks.dither_image(image_path, dithered_image_path) | tasks.draw_image(image_path))
+
+    return {"status": "ok"}
+
+class SelectModel(BaseModel):
+    image_name: str
+
+@app.post("/select")
+def select(model: SelectModel):
+    image_name = model.image_name
+    image_path = str(Path('dithered') / image_name)
     tasks.draw_image.delay(image_path)
     return {"status": "ok"}
 
@@ -120,13 +129,13 @@ def generate_loop():
                 continue
 
             image_name = Path(f'{uuid.uuid4()}.png')
-            image_path = Path('generated/') / image_name
-            output_image_path = Path('dithered') / image_name
+            image_path = str(Path('generated/') / image_name)
+            output_image_path = str(Path('dithered') / image_name)
 
             (seed,) = tasks.generate_image.delay(prompt, image_path).get()
             save_result(prompt, seed, image_path)
             tasks.dither_image.delay(image_path, output_image_path).get()
-            tasks.draw_image.delay(output_image_path).get()
+            # tasks.draw_image.delay(output_image_path).get()
 
             prompt = next(prompts_iter, None)
  
@@ -141,9 +150,9 @@ def startup():
     thread = Thread(target=generate_loop)
     thread.start()
 
-Path("/generated").mkdir(exist_ok=True)
-Path("/uploaded").mkdir(exist_ok=True)
-Path("/dithered").mkdir(exist_ok=True)
+Path("generated").mkdir(exist_ok=True)
+Path("uploaded").mkdir(exist_ok=True)
+Path("dithered").mkdir(exist_ok=True)
 
 app.mount("/generated", StaticFiles(directory="generated"), name="generated")
 app.mount("/uploaded", StaticFiles(directory="uploaded"), name="uploaded")
