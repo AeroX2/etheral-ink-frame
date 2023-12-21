@@ -79,7 +79,7 @@ def dither_image(image_path: str, output_path: str):
     paletteim.putpalette(palette * 32)
 
     dithered_image = input_image.quantize(colors=7, palette=paletteim)
-    dithered_image.save(output_path, "PNG")
+    dithered_image.save(output_path, "BMP")
 
 @celery.task
 def draw_image(file_path: str):
