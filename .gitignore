@@ -34,4 +34,6 @@ dump.rdb
 database.db
 generated/*
 uploaded/*
-dithered/*
+lib
+sdxl-turbo
+sd

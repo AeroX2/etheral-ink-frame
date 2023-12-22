@@ -220,7 +220,13 @@
   
     <script>
       function submitPrompt(event) {
-        $.post("/generate", { prompt: $("#prompt").val() })
+        $.ajax({
+          url:"/generate",
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ prompt: $("#prompt").val() }),
+          dataType: 'json'
+        });
         toggleModal(event)
       }
 
@@ -228,25 +234,36 @@
         const input = $("#upload-form-image-input")[0]
         const fd = new FormData();  
         fd.append( 'file', input.files[0] );
+
+	fetch('/upload', {method: 'POST', body: fd});
         
-        $.ajax({
-          url: '/upload',
-          data: fd,
-          processData: false,
-          contentType: false,
-          type: 'POST',
-          success: function(data){
-            alert("Image uploaded successfully!");
-          }
-        });
+        // $.ajax({
+        //   url: '/upload',
+        //   data: fd,
+        //   processData: false,
+        //   contentType: false,
+        //   type: 'POST',
+        //   success: function(data){
+        //     alert("Image uploaded successfully!");
+        //   }
+        // });
         toggleModal(event)
       }
     
       function selectImage(event) {
         const target = event.currentTarget ?? event.target
-        $.post("/cancel", () => {
-            $.post("/select", { image_name: target.childen[0].src })
-        })
+        $(target).attr('aria-busy', true)
+        $.post("/cancel")
+        $.ajax({
+          url:"/select",
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ image_path: new URL(target.src).pathname.slice(1) }),
+          dataType: 'json',
+          success: () => {
+            $(target).attr('aria-busy', true)
+          },
+        });
         toggleModal(event)
       }
 
