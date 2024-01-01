@@ -1,24 +1,24 @@
-8K
-4K
-64K
-HDR
-UHD
+8k
+4k
+64k
+hdr
+uhd
 trending on artstation
 hyperdetailed
 highly detailed
 extremely hyper aesthetic
 artstation
 adobe lightroom
-trending on CGSociety
-RTX
+trending on cgsociety
+rtx
 award winning
-Highres
-High quality
-Best quality
+highres
+high quality
+best quality
 most beautiful artwork in the world
 professional
 artstation
-extremely detailed CG Unity 8k wallpaper
+extremely detailed cg unity 8k wallpaper
 absurdres
 wallpaper
 extremely beautiful
@@ -33,11 +33,11 @@ adobe lightroom
 arthouse
 pixiv
 beautiful
-Concept Art World
+concept art world
 contest winner
-Flickr
-Unsplash
-Pixabay
+flickr
+unsplash
+pixabay
 digital painting
 comic book style
 hyper detailed
@@ -50,120 +50,120 @@ cel shaded
 octane engine
 ultrarealistic
 digital art
-Amusing
-Angry
-Awe
-Confused
-Cosy
-Cozy
-Dark
-Dark and Gritty
-Depressing
-Disgusting
-Embarrassing
-Energetic
-Evil
-Fantasy
-Fairy-Tale
-Fearful
-Flustered
-Frightening
-Grim
-Guilty
-Happy
-Hopeful
-Hopeless
-Horror
-Joyful
-Light
-Light and Bright
-Lonely
-Lustful
-Manic
-Peaceful
-Proud
-Regret
-Relaxed
-Relieving
-Romantic
-Sad
-Satisfying
-Sci-Fi
-Shameful
-Shameless
-Suffering
-Surprising
-Tranquil
-Wonder
-Zen
-Cel shaded
-Cel shading
-Classical
-Contemporary
-Detailed illustration
-Dynamic
-Graphic novel
-Illustration
-Masterpiece
-Magic Realism
-Realistic
-Rough sketch
-Screen print
-Simple illustration
-Simple and clean
-Sketch
-Sketched
-Ultra Detailed
-Ultra Real
-Ultrarealistic
-Visual novel
-Vivid
-Maximalist
-Movie still
-Anime screencap
-Overdetailed art
+amusing
+angry
+awe
+confused
+cosy
+cozy
+dark
+dark and gritty
+depressing
+disgusting
+embarrassing
+energetic
+evil
+fantasy
+fairy-tale
+fearful
+flustered
+frightening
+grim
+guilty
+happy
+hopeful
+hopeless
+horror
+joyful
+light
+light and bright
+lonely
+lustful
+manic
+peaceful
+proud
+regret
+relaxed
+relieving
+romantic
+sad
+satisfying
+sci-fi
+shameful
+shameless
+suffering
+surprising
+tranquil
+wonder
+zen
+cel shaded
+cel shading
+classical
+contemporary
+detailed illustration
+dynamic
+graphic novel
+illustration
+masterpiece
+magic realism
+realistic
+rough sketch
+screen print
+simple illustration
+simple and clean
+sketch
+sketched
+ultra detailed
+ultra real
+ultrarealistic
+visual novel
+vivid
+maximalist
+movie still
+anime screencap
+overdetailed art
 ultrafine detailed
-Fine art
+fine art
 detailed, masterpiece
-Fujifilm XT3
-Canon 5d mark 4
-Nikon d3300
-Canon eos 5d mark 4
-Sony A7
-Nikon d850
-Phase One XF IQ4 150MP
-Nikon Z9
-Iphone X
-Samsung Galaxy
+fujifilm xt3
+canon 5d mark 4
+nikon d3300
+canon eos 5d mark 4
+sony a7
+nikon d850
+phase one xf iq4 150mp
+nikon z9
+iphone x
+samsung galaxy
 compact camera
 film camera
-Polaroid
-Kodak portra 400
-Kodak portra 800
-Canon RF
-Canon EF
-Canon R5
-Hasselblad
-Kodak gold 200
-Nikon d850
-Sony A9 II
-Fuji superia 400
+polaroid
+kodak portra 400
+kodak portra 800
+canon rf
+canon ef
+canon r5
+hasselblad
+kodak gold 200
+nikon d850
+sony a9 ii
+fuji superia 400
 dslr
-Ilford HP5
-Cinestill 50
-Fomapan 400
-Fujichrome Provia 100F
-Fujicolor C200
-Fujicolor Fujichrome Velvia 100
-Fujicolor Pro 400H
-Fujicolor Superia X-TRA 400
-Fujifilm Neopan 100
-Ilford FP4 125
-Ilford HP5+ 400
-Ilford XP2 400
-Kodak Ektachrome E100
-Kodak Ektar 100
-Kodak Portra 160
-Kodak Tri-X 400
-Kodak UltraMax 400
-Lomography Color 100
+ilford hp5
+cinestill 50
+fomapan 400
+fujichrome provia 100f
+fujicolor c200
+fujicolor fujichrome velvia 100
+fujicolor pro 400h
+fujicolor superia x-tra 400
+fujifilm neopan 100
+ilford fp4 125
+ilford hp5+ 400
+ilford xp2 400
+kodak ektachrome e100
+kodak ektar 100
+kodak portra 160
+kodak tri-x 400
+kodak ultramax 400
+lomography color 100

@@ -16,11 +16,11 @@ celery = Celery(
     backend=settings.CELERY_RESULT_BACKEND
 )
 
-@celery.task(base=Singleton, time_limit=2400)
+@celery.task(base=Singleton, time_limit=7200)
 def generate_image(prompt: str, output_image_path: str):
     seed = random.randint(0, 1000000)
     
-    command = f"nice ./sd --rpi-lowmem --turbo --prompt {quote(prompt)} --models-path sdxl-turbo --steps 1 --output {quote(output_image_path)} --seed {seed}"
+    command = f"./sd --rpi-lowmem --turbo --prompt {quote(prompt)} --models-path sdxl-turbo-reshaped --steps 1 --output {quote(output_image_path)} --seed {seed} --bpe"
     #command = f"echo 'hello'; sleep 60; wget https://picsum.photos/800/480 -O {output_image_path}; echo 'end'"
     
     with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, shell=True) as process:
