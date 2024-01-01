@@ -1,3 +1,5 @@
+from shlex import quote
+import signal
 from threading import Thread
 from pydantic import BaseModel
 from fastapi import FastAPI, BackgroundTasks, File, UploadFile, Form
@@ -9,9 +11,9 @@ import io
 import sys
 import time
 import uuid
-import tasks
 import random
 import sqlite3
+import subprocess
 from pathlib import Path
 from datetime import datetime
 
@@ -69,25 +71,17 @@ def pause():
 def cancel():
     app.paused = True
 
-    #TODO (jridey) Probably a much betteer way of doing this
-    os.system("killall sd")
-
-    try:
-        for worker in tasks.celery.control.inspect().active().values():
-            for task in worker:
-                if 'generate_image' in task['name']:
-                    tasks.celery.control.revoke(task['id'], terminate=True)
-                return {"status": "ok"}
-    except Exception as e:
-        return {"status": "error", "error": str(e)}
+    if (process is not None):
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+        return {"status": "ok"}
     return {"status": "error", "error": "Task not found"}
 
 class GenerateModel(BaseModel):
     prompt: str
 
 @app.post("/generate")
-def generate(model: GenerateModel):
-    tasks.generate_image.delay(model.prompt, f"generated/{uuid.uuid4()}.png")
+def generate(model: GenerateModel, background_tasks: BackgroundTasks):
+    background_tasks.add_task(generate_image, model.prompt, f"generated/{uuid.uuid4()}.png")
     return {"status": "ok"}
 
 @app.post("/upload")
@@ -111,6 +105,44 @@ class SelectModel(BaseModel):
 def select(model: SelectModel, background_tasks: BackgroundTasks):
     background_tasks.add_task(draw_image, model.image_path)
     return {"status": "ok"}
+
+process = None
+def generate_image(prompt: str, output_image_path: str):
+    seed = random.randint(0, 1000000)
+    
+    command = f"./sd --rpi-lowmem --turbo --prompt {quote(prompt)} --models-path sdxl-turbo-reshaped --steps 1 --output {quote(output_image_path)} --seed {seed} --bpe"
+    #command = f"echo 'hello'; sleep 60; wget https://picsum.photos/800/480 -O {output_image_path}; echo 'end'"
+    
+    global process
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        shell=True,
+        preexec_fn=os.setsid,
+    )
+
+    while True:
+        output_line = process.stdout.readline()
+        if output_line == '' and process.poll() is not None:
+            break
+
+        print(f"Output: ${output_line.strip()}")
+
+        error_line = process.stderr.readline()
+        if error_line == '' and process.poll() is not None:
+            break
+
+        print(f"Error: ${error_line.strip()}")
+
+    try:
+        process.wait(timeout=7200)
+    except subprocess.TimeoutExpired:
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+
+    return (seed,)
+
 
 # Scheduling section
 
@@ -183,7 +215,7 @@ def generate_loop():
 
             print("Generating a new image")
             try:
-                (seed,) = tasks.generate_image.delay(prompt, image_path).get()
+                (seed,) = generate_image(prompt, image_path)
                 if (seed is None):
                     raise Exception("Seed is none")
                 if (not app.paused):
