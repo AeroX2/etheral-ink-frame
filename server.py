@@ -172,6 +172,9 @@ def save_result(prompt, seed, image_path):
     db.execute("UPDATE prompts SET seed=?, image_path=?, date=? WHERE prompt=?", (seed, image_path, datetime.now(), prompt))
     db.commit()
 
+pal_image = Image.new("P", (1,1))
+pal_image.putpalette( (0,0,0,  255,255,255,  0,255,0,   0,0,255,  255,0,0,  255,255,0, 255,128,0) + (0,0,0)*249)
+
 app.display_initialized = False
 def draw_image(file_path: str):
     if not os.path.exists(file_path):
@@ -188,6 +191,21 @@ def draw_image(file_path: str):
         with Image.open(file_path) as img:
             img = ImageOps.contain(img, (800,480))
             img = ImageOps.pad(img, (800,480), color='#fff')
+
+            # Convert sRGB to linear
+            img = np.array(img, dtype=np.float32) / 255.0
+            img = np.where(img <= 0.04045, img/12.92, ((img+0.055)/1.055)**2.4)
+            img = Image.fromarray(np.uint8(np.rint(img * 255.0)))
+
+            # Apply Floyd-Steinberg algorithm
+            img = img.quantize(palette=pal_image)
+
+            # Convert linear to sRGB
+            img = img.convert("RGB")
+            img = np.array(img, dtype=np.float32) / 255.0
+            img = np.where(img <= 0.0031308, 12.92*img, 1.055*img**(1.0/2.4) - 0.055)
+            img = Image.fromarray(np.uint8(np.rint(img * 255.0)))
+            
             epd.display(epd.getbuffer(img))
 
         epd.sleep()
