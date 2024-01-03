@@ -15,155 +15,20 @@ award winning
 highres
 high quality
 best quality
-most beautiful artwork in the world
-professional
-artstation
-extremely detailed cg unity 8k wallpaper
-absurdres
-wallpaper
-extremely beautiful
-octane engine
-unreal engine
-ultra high res
-masterpiece
-lots of details
-dslr
-photolab
-adobe lightroom
-arthouse
-pixiv
-beautiful
-concept art world
-contest winner
-flickr
-unsplash
-pixabay
-digital painting
-comic book style
-hyper detailed
-dramatic lighting
-3d render
-extremely beautiful
-graphic novel
-movie still
-cel shaded
-octane engine
-ultrarealistic
+
+3d model
+anime
+comic book
 digital art
-amusing
-angry
-awe
-confused
-cosy
-cozy
-dark
-dark and gritty
-depressing
-disgusting
-embarrassing
-energetic
-evil
-fantasy
-fairy-tale
-fearful
-flustered
-frightening
-grim
-guilty
-happy
-hopeful
-hopeless
-horror
-joyful
-light
-light and bright
-lonely
-lustful
-manic
-peaceful
-proud
-regret
-relaxed
-relieving
-romantic
-sad
-satisfying
-sci-fi
-shameful
-shameless
-suffering
-surprising
-tranquil
-wonder
-zen
-cel shaded
-cel shading
-classical
-contemporary
-detailed illustration
-dynamic
-graphic novel
-illustration
-masterpiece
-magic realism
-realistic
-rough sketch
-screen print
-simple illustration
-simple and clean
-sketch
-sketched
-ultra detailed
-ultra real
-ultrarealistic
-visual novel
-vivid
-maximalist
-movie still
-anime screencap
-overdetailed art
-ultrafine detailed
-fine art
-detailed, masterpiece
-fujifilm xt3
-canon 5d mark 4
-nikon d3300
-canon eos 5d mark 4
-sony a7
-nikon d850
-phase one xf iq4 150mp
-nikon z9
-iphone x
-samsung galaxy
-compact camera
-film camera
-polaroid
-kodak portra 400
-kodak portra 800
-canon rf
-canon ef
-canon r5
-hasselblad
-kodak gold 200
-nikon d850
-sony a9 ii
-fuji superia 400
-dslr
-ilford hp5
-cinestill 50
-fomapan 400
-fujichrome provia 100f
-fujicolor c200
-fujicolor fujichrome velvia 100
-fujicolor pro 400h
-fujicolor superia x-tra 400
-fujifilm neopan 100
-ilford fp4 125
-ilford hp5+ 400
-ilford xp2 400
-kodak ektachrome e100
-kodak ektar 100
-kodak portra 160
-kodak tri-x 400
-kodak ultramax 400
-lomography color 100
+fantasy art
+isometric
+neonpunk
+abstract
+expressionist
+impressionist
+pointillism
+pop art
+neon noir
+alien
+manga
+

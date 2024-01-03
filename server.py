@@ -110,7 +110,7 @@ process = None
 def generate_image(prompt: str, output_image_path: str):
     seed = random.randint(0, 1000000)
     
-    command = f"./sd --rpi-lowmem --turbo --prompt {quote(prompt)} --models-path sdxl-turbo-reshaped --steps 1 --output {quote(output_image_path)} --seed {seed} --bpe"
+    command = f"nice -n 3 ./sd --rpi-lowmem --turbo --prompt {quote(prompt)} --models-path sdxl-turbo-reshaped --steps 1 --output {quote(output_image_path)} --seed {seed} --bpe"
     #command = f"echo 'hello'; sleep 60; wget https://picsum.photos/800/480 -O {output_image_path}; echo 'end'"
     
     global process
@@ -149,12 +149,19 @@ def generate_image(prompt: str, output_image_path: str):
 def generate_prompts(amount: int):
     with open('data/prompt_data.txt') as f:
         lines = [x.strip() for x in f.readlines() if x.strip() != '']
-        prompts = [" ".join(random.sample(lines, random.randint(1,5))) for i in range(amount)]
+        prompts = [" ".join(random.sample(lines, random.randint(1,3))) for i in range(amount)]
 
     with open('data/attribute_data.txt') as f:
         lines = [x.strip() for x in f.readlines() if x.strip() != '']
-        attrs = [", ".join(random.sample(lines, random.randint(1,3))) for i in range(amount)]
+        attrs = [", ".join(random.sample(lines, random.randint(2,5))) for i in range(amount)]
         prompts = [f"{prompt}, {attr}" for prompt, attr in zip(prompts, attrs)]
+
+    with open('data/attribute_vomit.txt') as f:
+        lines = [x.strip() for x in f.readlines() if x.strip() != '']
+        attrs = [", ".join(random.sample(lines, random.randint(0,1))) for i in range(amount)]
+        prompts = [f"{prompt}, {attr}" for prompt, attr in zip(prompts, attrs)]
+
+    prompts = [f"{prompt}, super vibrant" for prompt in prompts]
 
     for prompt in prompts:
         db.execute("INSERT INTO prompts VALUES(?, NULL, NULL, NULL)", (prompt,))
@@ -239,6 +246,13 @@ def startup():
     print("Starting up")
     thread = Thread(target=generate_loop)
     thread.start()
+
+@app.on_event("shutdown")
+def shutdown():
+    try:
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+    except:
+        pass
 
 Path("generated").mkdir(exist_ok=True)
 Path("uploaded").mkdir(exist_ok=True)
