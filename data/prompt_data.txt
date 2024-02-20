@@ -6,7 +6,6 @@ space station
 warp gate
 earth
 galaxy
-nebula
 space battle
 space war
 lightspeed
@@ -20,65 +19,52 @@ gravity
 celestial
 orbit
 telescope
-alien
 interstellar
 cosmic
 exploration
 rocket
 exobiology
-radio telescope
-astrogeology
 space colonization
 ionosphere
 solar wind
 space habitat
 spacewalk
 astroengineering
-xenobiology
 star cluster
 cosmology
 spaceport
-magnetosphere
-space-time continuum
-retrograde motion
-heliosphere
-cosmochemistry
-astrocartography
-interceptor
-star cruiser
-battlecruiser
-explorer ship
-colony ship
-transport ship
-frigate
-stealth ship
-carrier
-mothership
-reconnaissance vessel
-space freighter
-patrol ship
-shuttlecraft
-starfighter
-dropship
-survey ship
-cargo vessel
-science vessel
-mining ship
-salvage ship
-bomber
-gunship
-corvette
-dreadnought
-titan-class ship
-sublight vessel
-warp-capable ship
-hyperdrive ship
-voidrunner
-voidcraft
-astrocarrier
 
 corgi
 cat
+pikachu
+totor
+hello kitty
+miffy
+chibi
+pompompurin
+neko
+kiki
+soot sprite
+usagi
+cinamoroll
+small hedghogs
+puppies
+gudetama
+pusheen
+rilakkuma
+tama
+mew
+kirby
+jiggypuff
+nyan cat
+eevee
+sanrio
+bunnie
+shiba
+animal crossing isabelle
+doom eternal, animal crossing
+isabelle, doom guy
+piplup
 
 skyscrapers
 megatowers
@@ -87,11 +73,8 @@ skywalks
 aerotrains
 maglev
 nanotech
-biome
 arcology
-solar panels
 augmented reality
-vertical farms
 smart infrastructure
 autonomous vehicles
 cybernetics
@@ -99,15 +82,6 @@ androids
 futuristic architecture
 technopolis
 urban sprawl
-skyports
-hyperloops
-quantum computing
-hovercraft
-energy-efficient
-eco-friendly
 urban oasis
 transparent facades
-synthetics
 futuristic transportation
-green rooftops
-advanced city planning
