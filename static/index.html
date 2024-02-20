@@ -55,14 +55,24 @@
           <header>
             <div class="inline">
               Prompts
-              <button
-                id="add-button" 
-                class="small-button"
-                data-target="dialog-prompt-form"
-                onClick="toggleModal(event)"
-              >
-                <i class="si-plus"></i>
-              </button>
+              <div class="inline">
+                <button
+                  id="settings-button" 
+                  class="small-button"
+                  data-target="dialog-settings-form"
+                  onClick="openSettingsModal(event)"
+                >
+                  <i class="si-stack"></i>
+                </button>
+                <button
+                  id="add-button" 
+                  class="small-button"
+                  data-target="dialog-prompt-form"
+                  onClick="toggleModal(event)"
+                >
+                  <i class="si-plus"></i>
+                </button>
+              </div>
             </div>
           </header>
           <table id="query-list" role="grid">
@@ -111,6 +121,51 @@
         </article>
       </div>
     </main>
+    
+    <dialog id="dialog-settings-form" title="Settings">
+      <article style="min-width: 80vw;">
+        <header>
+          Settings
+        </header>
+        <form>
+          <fieldset>
+            <label for="delay">Delay</label>
+            <input type="number" disabled name="delay" id="delay"></input>
+          </fieldset>
+          <fieldset>
+            <label for="prompt">Prompt data</label>
+            <textarea disabled name="prompt_data" id="prompt_data"></textarea>
+          </fieldset>
+          <fieldset>
+            <label for="prompt">Attribute data</label>
+            <textarea disabled name="attribute_data" id="attribute_data"></textarea>
+          </fieldset>
+          <fieldset>
+            <label for="prompt">Attribute vomit</label>
+            <textarea disabled name="attribute_vomit" id="attribute_vomit"></textarea>
+          </fieldset>
+        </form>
+        <footer>
+          <a 
+            href="#cancel"
+            role="button"
+            class="secondary"
+            data-target="dialog-settings-form"
+            onClick="toggleModal(event)"
+          >
+            Cancel
+          </a>
+          <a 
+            href="#confirm"
+            role="button"
+            data-target="dialog-settings-form"
+            onClick="submitSettings(event)"
+          >
+            Confirm
+          </a>
+        </footer>
+      </article>
+    </dialog>
   
     <dialog id="dialog-prompt-form" title="Add a new prompt">
       <article>
@@ -200,11 +255,6 @@
       <% data.forEach(item => { %>
       <tr>
         <td><%- item %></td>
-        <!-- <td style="width: 3em">
-          <button id="delete-button" class="small-button secondary outline">
-            <i class="si-trash"></i>
-          </button>
-        </td> -->
       </tr>
       <% }); %>
     </script>
@@ -219,6 +269,41 @@
     </script>
   
     <script>
+      function openSettingsModal(event) {
+        $.getJSON("/data", (data) => {
+          data = data.data;
+          
+          $("#delay").val(data.delay);
+          $("#delay").prop("disabled", false);
+        
+          $("#prompt_data").val(data.prompt_data);
+          $("#prompt_data").prop("disabled", false);
+          
+          $("#attribute_data").val(data.attribute_data);
+          $("#attribute_data").prop("disabled", false);
+          
+          $("#attribute_vomit").val(data.attribute_vomit);
+          $("#attribute_vomit").prop("disabled", false);
+        });
+        toggleModal(event)
+      }
+      
+      function submitSettings(event) {
+        $.ajax({
+          url:"/data",
+          type: 'POST',
+          contentType: 'application/json',
+          data: JSON.stringify({ 
+            delay:     Number($("#delay").val()),
+            prompt_data:     $("#prompt_data").val(),
+            attribute_data:  $("#attribute_data").val(),
+            attribute_vomit: $("#attribute_vomit").val(),
+          }),
+          dataType: 'json'
+        });
+        toggleModal(event)
+      }
+      
       function submitPrompt(event) {
         $.ajax({
           url:"/generate",
@@ -235,18 +320,7 @@
         const fd = new FormData();  
         fd.append( 'file', input.files[0] );
 
-	fetch('/upload', {method: 'POST', body: fd});
-        
-        // $.ajax({
-        //   url: '/upload',
-        //   data: fd,
-        //   processData: false,
-        //   contentType: false,
-        //   type: 'POST',
-        //   success: function(data){
-        //     alert("Image uploaded successfully!");
-        //   }
-        // });
+        fetch('/upload', {method: 'POST', body: fd});
         toggleModal(event)
       }
     

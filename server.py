@@ -41,6 +41,26 @@ db.row_factory = sqlite3.Row
 #def root():
 #    return {"Hello": "World"}
 
+@app.get("/data")
+def get_data():
+    data = {
+        "delay": delay,
+        "prompt_data": [],
+        "attribute_data": [],
+        "attribute_vomit": [],
+    }
+    
+    with open('data/prompt_data.txt') as f:
+        data["prompt_data"] = f.read();
+        
+    with open('data/attribute_data.txt') as f:
+        data["attribute_data"] = f.read();
+        
+    with open('data/attribute_vomit.txt') as f:
+        data["attribute_vomit"] = f.read();       
+    
+    return {"status": "ok", "data": data}
+
 @app.get("/prompts")
 def prompts(page = 1, limit = 20):
     page = int(page)
@@ -76,6 +96,27 @@ def cancel():
         return {"status": "ok"}
     return {"status": "error", "error": "Task not found"}
 
+class DataModel(BaseModel):
+    prompt_data: str
+    attribute_data: str
+    attribute_vomit: str
+    delay: int
+
+@app.post("/data")
+def post_data(model: DataModel):
+    delay = model.delay;
+
+    with open('data/prompt_data.txt', 'w') as f:
+        f.write(model.prompt_data)
+        
+    with open('data/attribute_data.txt', 'w') as f:
+        f.write(model.attribute_data)
+        
+    with open('data/attribute_vomit.txt', 'w') as f:
+        f.write(model.attribute_vomit)
+    
+    return {"status": "ok"}
+
 class GenerateModel(BaseModel):
     prompt: str
 
@@ -110,7 +151,7 @@ process = None
 def generate_image(prompt: str, output_image_path: str):
     seed = random.randint(0, 1000000)
     
-    command = f"nice -n 3 ./sd --rpi-lowmem --turbo --prompt {quote(prompt)} --models-path sdxl-turbo-reshaped --steps 1 --output {quote(output_image_path)} --seed {seed} --bpe"
+    command = f"./sd --rpi --turbo --prompt {quote(prompt)} --models-path sdxl-turbo-reshaped --steps 1 --output {quote(output_image_path)} --seed {seed}"
     #command = f"echo 'hello'; sleep 60; wget https://picsum.photos/800/480 -O {output_image_path}; echo 'end'"
     
     global process
@@ -219,6 +260,9 @@ def draw_image(file_path: str):
         print("ctrl + c:")
         epd7in3f.epdconfig.module_exit()
 
+#3h in seconds
+delay = 10800
+
 def generate_loop():
     # Wait for Celery, Redis and stuff to boot
     time.sleep(3)
@@ -250,7 +294,7 @@ def generate_loop():
                 print(f"{prompt} failed to generated")
                 print(e)
             
-
+            time.sleep(delay)
             prompt = next(prompts_iter, None)
  
 
